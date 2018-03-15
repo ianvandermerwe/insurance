@@ -3,6 +3,7 @@
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
+use Illuminate\Support\Facades\Log;
 
 class InsuranceController extends Controller
 {
@@ -82,18 +83,56 @@ class InsuranceController extends Controller
 
 
     // Example call structure
-    public function call () {
-        $__quote = $this->generateQuote(2500000, false, 0, []);
-        $__policyholder = $this->createPolicyHolder("id", "6408279754187", "ZA", "19641010", "Melcom", "van Eeden");
-        $__application = $this->createApplication($__policyholder->{'policyholder_id'}, $__quote[0]->{'suggested_premium'}, $__quote[0]->{'quote_package_id'});
-        $__issuePolicy = $this->issuePolicy($__application->{'application_id'});
+    public function call (Request $request) {
+        // $__quote = $this->generateQuote(2500000, false, 0, []);
+        // $__policyholder = $this->createPolicyHolder("id", "6412167339085", "ZA", "19641010", "Melcom", "van Eeden");
+        // $__application = $this->createApplication($__policyholder->{'policyholder_id'}, $__quote[0]->{'suggested_premium'}, $__quote[0]->{'quote_package_id'});
+        // $__issuePolicy = $this->issuePolicy($__application->{'application_id'});
+        // dd([
+        //     $__quote,
+        //     $__policyholder,
+        //     $__application,
+        //     $__issuePolicy
+        // ]);
 
-        dd([
-            $__quote,
-            $__policyholder,
-            $__application,
-            $__issuePolicy
-        ]);
+        $number = intval($request->get("result")['parameters']['number']);
+        if ($number < 1000000 || $number > 5000000) {
+            return response()->json([
+                "speech" => "A",
+                "displayText" => "A",
+                "outputContext" => [
+                    "name" => "cover_enquiry_amount",
+                    'parameters' => array (
+                        'number' => '30000',
+                        'number.original' => '30000',
+                    ),
+                    "lifespan" => 1
+                ],
+                "type" => 0
+            ], 200, ['Content-Type', 'application/json']);
+        }
+        else {
+            $__quote = $this->generateQuote($number, false, 0, []);
+            return response()->json([
+                // "speech" => $request->get("result")['fulfillment']['speech'],
+                // "displayText" => $request->get("result")['fulfillment']['speech'],
+                "speech" => "Premium Amount: ".$__quote[0]->{'suggested_premium'},
+                "displayText" => "Premium Amount: ".$__quote[0]->{'suggested_premium'},
+                "outputContext" => [
+                    "name" => "has_children_question",
+                    'parameters' => array (
+                        'number' => '30000',
+                        'number.original' => '30000',
+                    ),
+                    "lifespan" => 1
+                ],
+                "type" => 0
+            ], 200, ['Content-Type', 'application/json']);
+        }
+    }
+
+    public function temp () {
+        echo 'test';
     }
 }
 
